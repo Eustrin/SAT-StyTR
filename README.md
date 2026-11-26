@@ -11,28 +11,28 @@
 - `CPU`
 
 ## 文件结构
-<!-- 只显示必要的，参考已经显示的文件结构，尽量简短，不更改已存在的或已删除的注释 -->
+<!-- 只显示必要的，参考已经显示的文件结构，尽量简短，禁止更改已存在的注释 -->
 ```text
 .
 ├── 论文.md                                 # 目标复现论文
 ├── README.md                               # 复现方法、脚本说明与阶段性测试结果记录
 ├── scripts                                 # 复现脚本目录
-│   ├── prepare-cuhk.py                     # 按人脸编号精准配对 CUHK 数据并统一 Resize 到 256×256（40 训 / 10 测）
+│   ├── prepare-cuhk.py                     # 按人脸编号配对 CUHK 数据并Resize 到 256×256
 │   ├── dataset_cuhk.py                     # PyTorch 配对数据读取器 PairedCUHKDataset，返回 (Ic, Is) 张量
-│   ├── dfdm.py                             # 双模态特征解耦模块 DFDM×3 实现与前向/反传测试
-│   └── vdfm.py                             # 行-列向量动态融合模块 VDFM×3 实现与生成器链路测试
+│   ├── dfdm.py                             # 双模态特征解耦模块
+│   └── vdfm.py                             # 行-列向量动态融合模块
 ├── cuhk-face-sketch-database               # 原始 CUFS 数据集
 ├── data
-│   ├── cuhk                                # 40 训 / 10 测 迷你数据集 (256×256)
+│   ├── cuhk                                # 40 训 / 10 测 迷你数据集
 │   │   ├── train
 │   │   │   ├── photo                       # 40 张训练照片
 │   │   │   └── sketch                      # 40 张训练素描
 │   │   └── test
 │   │       ├── photo                       # 10 张测试照片
-│   │       └── sketch                      # 10 张测试真值素描（仅用于对比/算分）
-│   └── baseline                            # 原版 StyTR-2 在 CUHK 上的基线试验归档
-│       ├── input                           # 基线试验输入（content 照片 + style 参考素描）
-│       └── output                          # 基线生成结果（.jpg）
+│   │       └── sketch                      # 10 张测试真值素描
+│   └── baseline                            # 原版 StyTR-2 在 CUHK 上的基线试验
+│       ├── input                           # 基线试验输入
+│       └── output                          # 基线生成结果
 ├── input                                   # 单次推理临时工作区
 ├── out                                     # 推理输出临时工作区
 ```
