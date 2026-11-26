@@ -1,0 +1,20 @@
+# Python 缓存与虚拟环境
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# 数据集（大文件，由脚本或本地下载生成）
+cuhk-face-sketch-database/
+data/cuhk/
+
+# 模型权重（大文件）
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+
+# 临时输入与推理输出工作区（仅忽略根目录下的工作区，保留 data/ 下的试验归档）
+/input/
+/out/
