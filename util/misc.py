@@ -18,7 +18,10 @@ from torch import Tensor
 
 # needed due to empty tensor bug in pytorch and torchvision 0.5
 import torchvision
-if float(torchvision.__version__[:3]) < 0.7:
+import re
+_tv_match = re.match(r'^(\d+)\.(\d+)', torchvision.__version__)
+_tv_ver = (int(_tv_match.group(1)), int(_tv_match.group(2))) if _tv_match else (0, 0)
+if _tv_ver < (0, 7):
     from torchvision.ops import _new_empty_tensor
     from torchvision.ops.misc import _output_size
 
@@ -47,7 +50,7 @@ class SmoothedValue(object):
         """
         if not is_dist_avail_and_initialized():
             return
-        t = torch.tensor([self.count, self.total], dtype=torch.float64, device='cuda')
+        t = torch.tensor([self.count, self.total], dtype=torch.float64, device=torch.device('cpu'))
         dist.barrier()
         dist.all_reduce(t)
         t = t.tolist()
@@ -100,11 +103,11 @@ def all_gather(data):
     # serialized to a Tensor
     buffer = pickle.dumps(data)
     storage = torch.ByteStorage.from_buffer(buffer)
-    tensor = torch.ByteTensor(storage).to("cuda")
+    tensor = torch.ByteTensor(storage).to(torch.device("cpu"))
 
     # obtain Tensor size of each rank
-    local_size = torch.tensor([tensor.numel()], device="cuda")
-    size_list = [torch.tensor([0], device="cuda") for _ in range(world_size)]
+    local_size = torch.tensor([tensor.numel()], device=torch.device("cpu"))
+    size_list = [torch.tensor([0], device=torch.device("cpu")) for _ in range(world_size)]
     dist.all_gather(size_list, local_size)
     size_list = [int(size.item()) for size in size_list]
     max_size = max(size_list)
@@ -114,9 +117,9 @@ def all_gather(data):
     # gathering tensors of different shapes
     tensor_list = []
     for _ in size_list:
-        tensor_list.append(torch.empty((max_size,), dtype=torch.uint8, device="cuda"))
+        tensor_list.append(torch.empty((max_size,), dtype=torch.uint8, device=torch.device("cpu")))
     if local_size != max_size:
-        padding = torch.empty(size=(max_size - local_size,), dtype=torch.uint8, device="cuda")
+        padding = torch.empty(size=(max_size - local_size,), dtype=torch.uint8, device=torch.device("cpu"))
         tensor = torch.cat((tensor, padding), dim=0)
     dist.all_gather(tensor_list, tensor)
 
@@ -456,7 +459,7 @@ def interpolate(input, size=None, scale_factor=None, mode="nearest", align_corne
     This will eventually be supported natively by PyTorch, and this
     class can go away.
     """
-    if float(torchvision.__version__[:3]) < 0.7:
+    if _tv_ver < (0, 7):
         if input.numel() > 0:
             return torch.nn.functional.interpolate(
                 input, size, scale_factor, mode, align_corners

@@ -88,7 +88,7 @@ alpha=args.a
 
 
 
-device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 # Either --content or --content_dir should be given.
 if args.content:
@@ -109,7 +109,7 @@ if not os.path.exists(output_path):
 
 
 vgg = StyTR.vgg
-vgg.load_state_dict(torch.load(args.vgg))
+vgg.load_state_dict(torch.load(args.vgg, map_location='cpu', weights_only=False))
 vgg = nn.Sequential(*list(vgg.children())[:44])
 
 decoder = StyTR.decoder
@@ -121,7 +121,7 @@ Trans.eval()
 vgg.eval()
 from collections import OrderedDict
 new_state_dict = OrderedDict()
-state_dict = torch.load(args.decoder_path)
+state_dict = torch.load(args.decoder_path, map_location='cpu', weights_only=False)
 for k, v in state_dict.items():
     #namekey = k[7:] # remove `module.`
     namekey = k
@@ -129,7 +129,7 @@ for k, v in state_dict.items():
 decoder.load_state_dict(new_state_dict)
 
 new_state_dict = OrderedDict()
-state_dict = torch.load(args.Trans_path)
+state_dict = torch.load(args.Trans_path, map_location='cpu', weights_only=False)
 for k, v in state_dict.items():
     #namekey = k[7:] # remove `module.`
     namekey = k
@@ -137,7 +137,7 @@ for k, v in state_dict.items():
 Trans.load_state_dict(new_state_dict)
 
 new_state_dict = OrderedDict()
-state_dict = torch.load(args.embedding_path)
+state_dict = torch.load(args.embedding_path, map_location='cpu', weights_only=False)
 for k, v in state_dict.items():
     #namekey = k[7:] # remove `module.`
     namekey = k
@@ -170,7 +170,9 @@ for content_path in content_paths:
         content = content.to(device).unsqueeze(0)
         
         with torch.no_grad():
-            output= network(content,style)       
+            output= network(content,style)
+        if isinstance(output, tuple):
+            output = output[0]
         output = output.cpu()
                 
         output_name = '{:s}/{:s}_stylized_{:s}{:s}'.format(
