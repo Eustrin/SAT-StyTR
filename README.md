@@ -11,12 +11,12 @@
 - `CPU`
 
 ## 文件结构
-<!-- 只显示必要的，参考已经显示的文件结构，尽量简短，禁止更改已存在的注释 -->
+<!-- 只显示必要的，参考已经显示的文件结构，尽量简短，禁止更改已存在的描述 -->
 ```text
 .
 ├── 论文.md                                 # 目标复现论文
-├── README.md                               # 复现方法、脚本说明与阶段性测试结果记录
-├── scripts                                 # 复现脚本目录
+├── README.md                               # 复现过程
+├── scripts                                 # 复现脚本
 │   ├── prepare-cuhk.py                     # 按人脸编号配对 CUHK 数据并Resize 到 256×256
 │   ├── dataset_cuhk.py                     # PyTorch 配对数据读取器 PairedCUHKDataset，返回 (Ic, Is) 张量
 │   ├── dfdm.py                             # 双模态特征解耦模块
@@ -31,10 +31,11 @@
 │   │       ├── photo                       # 10 张测试照片
 │   │       └── sketch                      # 10 张测试真值素描
 │   └── baseline                            # 原版 StyTR-2 在 CUHK 上的基线试验
-│       ├── input                           # 基线试验输入
-│       └── output                          # 基线生成结果
-├── input                                   # 单次推理临时工作区
-├── out                                     # 推理输出临时工作区
+│       ├── input                           
+│       └── output                          
+├── input                                   # 临时输入工作区
+├── out                                     # 临时输出工作区
+...
 ```
 
 ## 步骤
