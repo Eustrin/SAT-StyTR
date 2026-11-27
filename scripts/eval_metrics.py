@@ -107,8 +107,30 @@ def main():
         print("LPIPS ↓: N/A（未安装 lpips，需要时可执行 pip install lpips）")
 
     if importlib.util.find_spec("pytorch_fid") is not None:
-        from pytorch_fid.fid_score import calculate_fid_given_paths
-        fid = calculate_fid_given_paths([str(pred_dir), str(gt_dir)], batch_size=min(n, 10), device="cpu", dims=2048)
+        import numpy as np
+        from scipy import linalg
+        from pytorch_fid.fid_score import compute_statistics_of_path
+        from pytorch_fid.inception import InceptionV3
+
+        block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[2048]
+        inc_model = InceptionV3([block_idx]).to("cpu")
+        m1, s1 = compute_statistics_of_path(str(pred_dir), inc_model, min(n, 10), 2048, "cpu", 0)
+        m2, s2 = compute_statistics_of_path(str(gt_dir), inc_model, min(n, 10), 2048, "cpu", 0)
+
+        diff = m1 - m2
+        covmean = linalg.sqrtm(s1.dot(s2))
+        if isinstance(covmean, tuple):
+            covmean = covmean[0]
+        if not np.isfinite(covmean).all():
+            offset = np.eye(s1.shape[0]) * 1e-6
+            covmean = linalg.sqrtm((s1 + offset).dot(s2 + offset))
+            if isinstance(covmean, tuple):
+                covmean = covmean[0]
+        if np.iscomplexobj(covmean):
+            if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
+                raise ValueError(f"Imaginary component {np.max(np.abs(covmean.imag))}")
+            covmean = covmean.real
+        fid = float(diff.dot(diff) + np.trace(s1) + np.trace(s2) - 2 * np.trace(covmean))
         print(f"FID  ↓ : {fid:.2f}")
     else:
         print("FID  ↓ : N/A（未安装 pytorch-fid，需要时可执行 pip install pytorch-fid）")

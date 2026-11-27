@@ -1,4 +1,5 @@
 # AGENTS.md
+<!-- 用了一些AI帮助 -->
 
 Guidelines for working in this repository (`StyTR-2` / SAT-StyTR reproduction from `论文.md`).
 
