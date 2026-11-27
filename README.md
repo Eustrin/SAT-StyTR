@@ -36,9 +36,9 @@
 │   │   └── test
 │   │       ├── photo                       # 10 张测试照片
 │   │       └── sketch                      # 10 张测试真值素描
-│   └── baseline                            # 原版 StyTR-2 在 CUHK 上的基线试验
-│       ├── input                           
-│       └── output                          
+│   ├── baseline                            # 原版 StyTR-2 在 CUHK 上的基线试验
+│   │   ├── input                           
+│   │   └── output                          
 │   └── sat                                 # SAT-StyTR 复现试验归档
 │       └── output                          # 归档推理结果图
 ├── input                                   # 临时输入工作区
@@ -59,7 +59,7 @@
 
    | 输入照片 $I_c$ | 风格参考 $I_s$（训练集） | 原版基线输出（`data/baseline/output/`） | 测试真值素描（仅对比） |
    | :---: | :---: | :---: | :---: |
-   | ![Ic](data/baseline/input/content/001_f-041-01.png) | ![Is](data/baseline/input/style/001_f-001-01.png) | ![baseline](data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg) | ![gt](data/cuhk/test/sketch/001_f-041-01.png) |
+   | <img src="data/baseline/input/content/001_f-041-01.png" width="200"> | <img src="data/baseline/input/style/001_f-001-01.png" width="200"> | <img src="data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg" width="200"> | <img src="data/cuhk/test/sketch/001_f-041-01.png" width="200"> |
 
 4. 使用 `scripts/dataset_cuhk.py` 构建配对数据读取器 `PairedCUHKDataset`（输出张量 `[B, 3, 256, 256]`，像素范围 `[0, 1]`）。
    - 对应论文 **1.1 节**双分支输入（人脸照片 $I_c$、素描图像 $I_s$）与 **1.5.4 节公式 (12)** 像素对齐要求。
@@ -173,7 +173,7 @@
 
    | 输入照片 $I_c$ | 风格参考 $I_s$（训练集） | 原版基线输出 | SAT-StyTR 输出（20 步） | 测试真值素描（仅对比） |
    | :---: | :---: | :---: | :---: | :---: |
-   | ![Ic](data/baseline/input/content/001_f-041-01.png) | ![Is](data/baseline/input/style/001_f-001-01.png) | ![baseline](data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg) | ![sat](data/sat/output/001_f-041-01_stylized_001_f-001-01.jpg) | ![gt](data/cuhk/test/sketch/001_f-041-01.png) |
+   | <img src="data/baseline/input/content/001_f-041-01.png" width="200"> | <img src="data/baseline/input/style/001_f-001-01.png" width="200"> | <img src="data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg" width="200"> | <img src="data/sat/output/001_f-041-01_stylized_001_f-001-01.jpg" width="200"> | <img src="data/cuhk/test/sketch/001_f-041-01.png" width="200"> |
 
 ## 原版 StyTR-2 已实现的论文部分
 
