@@ -38,14 +38,27 @@
 │   │       └── sketch                      # 10 张测试真值素描
 │   ├── baseline                            # 原版 StyTR-2 在 CUHK 上的基线试验
 │   │   ├── input                           
-│   │   └── output                          
-│   └── sat                                 # SAT-StyTR 复现试验归档
-│       └── output                          # 归档推理结果图
+│   │   └── output                          # 原版基线在测试集上的输出图
+│   └── sat                                 # SAT-StyTR 部分数据复现试验归档
+│       ├── input                           # README 对比用的测试输入照片
+│       ├── style                           # 统一风格参考素描
+│       ├── gt                              # 测试真值素描（仅对比）
+│       ├── output                          # SAT-StyTR 完整模型输出
+│       └── ablation                        # 消融模型输出
+│           ├── no_dfdm
+│           ├── no_vdfm
+│           ├── no_dfdm_vdfm
+│           ├── no_mspd
+│           └── no_tr_enc
 ├── input                                   # 临时输入工作区
 ├── out                                     # 临时输出工作区
 │   ├── checkpoints                         # 训练权重输出目录（含 sat_latest.pth 等 .pth 文件）
+│   ├── checkpoints_ablation                # 消融实验权重输出目录
 │   ├── train_preview                       # 训练过程预览对比图
-│   └── sat                                 # 测试集推理生成的素描图像
+│   ├── train_preview_ablation              # 消融实验训练预览图
+│   ├── baseline                            # 原版基线推理临时输出
+│   ├── sat                                 # 完整模型推理临时输出
+│   └── sat_ablation                        # 消融模型推理临时输出
 ...
 ```
 
@@ -59,7 +72,7 @@
 
    | 输入照片 $I_c$ | 风格参考 $I_s$（训练集） | 原版基线输出（`data/baseline/output/`） | 测试真值素描（仅对比） |
    | :---: | :---: | :---: | :---: |
-   | <img src="data/baseline/input/content/001_f-041-01.png" width="200"> | <img src="data/baseline/input/style/001_f-001-01.png" width="200"> | <img src="data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg" width="200"> | <img src="data/cuhk/test/sketch/001_f-041-01.png" width="200"> |
+   | <img src="data/baseline/input/content/001_f-041-01.png" width="150"> | <img src="data/baseline/input/style/001_f-001-01.png" width="150"> | <img src="data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg" width="150"> | <img src="data/cuhk/test/sketch/001_f-041-01.png" width="150"> |
 
 4. 使用 `scripts/dataset_cuhk.py` 构建配对数据读取器 `PairedCUHKDataset`（输出张量 `[B, 3, 256, 256]`，像素范围 `[0, 1]`）。
    - 对应论文 **1.1 节**双分支输入（人脸照片 $I_c$、素描图像 $I_s$）与 **1.5.4 节公式 (12)** 像素对齐要求。
@@ -171,9 +184,37 @@
    FID  ↓ : N/A（未安装 pytorch-fid，需要时可执行 pip install pytorch-fid）
    ```
 
-   | 输入照片 $I_c$ | 风格参考 $I_s$（训练集） | 原版基线输出 | SAT-StyTR 输出（20 步） | 测试真值素描（仅对比） |
-   | :---: | :---: | :---: | :---: | :---: |
-   | <img src="data/baseline/input/content/001_f-041-01.png" width="200"> | <img src="data/baseline/input/style/001_f-001-01.png" width="200"> | <img src="data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg" width="200"> | <img src="data/sat/output/001_f-041-01_stylized_001_f-001-01.jpg" width="200"> | <img src="data/cuhk/test/sketch/001_f-041-01.png" width="200"> |
+   **9×8 人像对比表**：8 行取自 CUHK 测试集前 8 对；所有方法统一使用 `data/sat/style/001_f-001-01.png` 作为风格参考。论文图 4 中的 pix2pix、U-GAT-IT、DCLGAN、文献 [15]、CAP-VSTNet、Mamba-ST 六种外部方法未在当前复现中实现，故 (b)~(g) 列替换为可复现的原版基线/消融设置。
+
+   | 编号 | (a) 输入照片 | (b) 原版基线 | (c) w/o DFDM | (d) w/o VDFM | (e) w/o DFDM+VDFM | (f) w/o MSPD | (g) w/o Tr.Enc | (h) SAT 完整 | (i) 测试真值 |
+   | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+   | 001_f-041-01 | <img src="data/sat/input/001_f-041-01.png" width="80"> | <img src="data/baseline/output/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/001_f-041-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/001_f-041-01.png" width="80"> |
+   | 002_f-042-01 | <img src="data/sat/input/002_f-042-01.png" width="80"> | <img src="data/baseline/output/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/002_f-042-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/002_f-042-01.png" width="80"> |
+   | 003_f-043-01 | <img src="data/sat/input/003_f-043-01.png" width="80"> | <img src="data/baseline/output/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/003_f-043-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/003_f-043-01.png" width="80"> |
+   | 004_m-001-01 | <img src="data/sat/input/004_m-001-01.png" width="80"> | <img src="data/baseline/output/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/004_m-001-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/004_m-001-01.png" width="80"> |
+   | 005_m-002-01 | <img src="data/sat/input/005_m-002-01.png" width="80"> | <img src="data/baseline/output/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/005_m-002-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/005_m-002-01.png" width="80"> |
+   | 006_m-003-01 | <img src="data/sat/input/006_m-003-01.png" width="80"> | <img src="data/baseline/output/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/006_m-003-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/006_m-003-01.png" width="80"> |
+   | 007_m-004-01 | <img src="data/sat/input/007_m-004-01.png" width="80"> | <img src="data/baseline/output/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/007_m-004-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/007_m-004-01.png" width="80"> |
+   | 008_m-005-01 | <img src="data/sat/input/008_m-005-01.png" width="80"> | <img src="data/baseline/output/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_vdfm/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_dfdm_vdfm/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_mspd/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/ablation/no_tr_enc/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/output/008_m-005-01_stylized_001_f-001-01.jpg" width="80"> | <img src="data/sat/gt/008_m-005-01.png" width="80"> |
+
+   定量对比（同一批 10 张测试图，LPIPS/FID 未安装）：
+
+   | 模型 | 训练设置 | SSIM ↑ | PSNR/dB ↑ | MSE ↓ |
+   | --- | --- | :---: | :---: | :---: |
+   | 原版 StyTR-2 基线 | 原版预训练权重，512×512 推理 | 0.5937 | 12.63 | 3643.61 |
+   | SAT 完整 | DFDM+VDFM+MSPD+Transformer，20 步 | 0.4370 | 8.13 | 10046.92 |
+   | w/o DFDM | 37.74 M，20 步 | 0.4286 | 9.16 | 7939.54 |
+   | w/o VDFM | 31.73 M，20 步 | 0.6033 | 13.33 | 3218.78 |
+   | w/o DFDM+VDFM | 22.78 M，20 步 | 0.6071 | 14.11 | 2788.43 |
+   | w/o MSPD | 46.69 M，无对抗损失，20 步 | 0.3810 | 5.82 | 17087.04 |
+   | w/o Transformer 编码器 | 27.51 M，20 步 | 0.4370 | 8.41 | 9397.93 |
+
+## 部分数据复现说明
+
+- **使用数据**：仅使用 CUHK 子集，`40` 对训练 + `10` 对测试，共 `50/188` 对（约 `26.6%`）。论文中 CUHK 使用 `150` 对训练、其余 `38` 对测试；完整 CUFS 为 `606` 对，本文未使用 AR、XM2VTS、CUFSF。
+- **训练规模**：CPU、`20` 步、`batch_size=2`；论文为 RTX4090、`5×10^4` 次迭代。因此当前结果只用于验证代码链路和表格记录，不能与论文表 1 的指标直接比较。
+- **与原版对比**：同一批 10 张测试图上，原版 StyTR-2 基线 `SSIM=0.5937 / PSNR=12.63 dB / MSE=3643.61`；SAT 完整模型 `SSIM=0.4370 / PSNR=8.13 dB / MSE=10046.92`，尚未超过基线；表现最好的 `w/o DFDM+VDFM` 为 `SSIM=0.6071 / PSNR=14.11 dB / MSE=2788.43`，但这不是完整 SAT-StyTR。
+- **结论**：作为“部分数据 + CPU 轻量”的工程复现，模块、训练、推理、评估链路已跑通，可视对比表已归档；作为论文定量结果复现，目前**未成功**，主要受训练步数、数据规模和算力限制。后续需要扩大数据、完成 `5×10^4` 迭代并安装 `lpips` / `pytorch-fid` 后再判定论文指标是否复现。
 
 ## 原版 StyTR-2 已实现的论文部分
 
